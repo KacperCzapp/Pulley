@@ -149,6 +149,11 @@ public enum PulleyPanelCornerPlacement {
     case bottomRight
 }
 
+public enum PulleyBackgroundDimmingMode {
+    case whenOpen
+    case whenPartiallyRevealed
+}
+
 /// Represents the 'snap' mode for Pulley. The default is 'nearest position'. You can use 'nearestPositionUnlessExceeded' to make the drawer feel lighter or heavier.
 ///
 /// - nearestPosition: Snap to the nearest position when scroll stops
@@ -373,6 +378,8 @@ open class PulleyViewController: UIViewController, PulleyDrawerViewControllerDel
           }
       }
     }
+    
+    public var backgroundDimmingMode: PulleyBackgroundDimmingMode = .whenOpen
 
     /// The opaque color of the background dimming view.
     @IBInspectable public var backgroundDimmingColor: UIColor = UIColor.black {
@@ -1189,6 +1196,15 @@ open class PulleyViewController: UIViewController, PulleyDrawerViewControllerDel
             UIView.animate(withDuration: animationDuration, delay: animationDelay, usingSpringWithDamping: animationSpringDamping, initialSpringVelocity: animationSpringInitialVelocity, options: animationOptions, animations: { [weak self] () -> Void in
                 
                 self?.drawerScrollView.setContentOffset(CGPoint(x: 0, y: stopToMoveTo - lowestStop), animated: false)
+                
+                if let self = self {
+                    switch (self.drawerPosition, self.backgroundDimmingMode) {
+                        case (.open, .whenOpen), (.partiallyRevealed, .whenPartiallyRevealed):
+                            self.backgroundDimmingView.alpha = self.backgroundDimmingOpacity
+                    default:
+                        break
+                    }
+                }
                 
                 // Move backgroundDimmingView to avoid drawer background being darkened
                 self?.backgroundDimmingView.frame = self?.backgroundDimmingViewFrameForDrawerPosition(stopToMoveTo) ?? CGRect.zero
